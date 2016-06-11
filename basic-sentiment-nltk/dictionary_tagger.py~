@@ -1,0 +1,4 @@
+class DictionaryTagger(object):
+    def __init__(self, dictionayr_paths):
+        pass
+    
