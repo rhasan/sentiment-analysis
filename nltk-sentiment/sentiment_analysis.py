@@ -2,6 +2,7 @@ from nltk.classify import NaiveBayesClassifier
 from nltk.corpus import subjectivity
 from nltk.sentiment import SentimentAnalyzer
 from nltk.sentiment.util import *
+from nltk import tokenize
 
 class SentimentAnalyzerTry(object):
     def __init__(self):
@@ -29,7 +30,7 @@ class SentimentAnalyzerTry(object):
 
     def extract_training_test_features(self):
         # We use simple unigram word features, handling negation.
-        self.all_words_neg = mark_negative_sentence(self.training_docs)
+        self.all_words_neg = self.mark_negative_sentence(self.training_docs)
         self.unigram_feats = self.sentim_analyzer.unigram_word_feats(self.all_words_neg, min_freq=4)
         self.sentim_analyzer.add_feat_extractor(extract_unigram_feats, unigrams=self.unigram_feats)
 
@@ -41,26 +42,38 @@ class SentimentAnalyzerTry(object):
         all_words_neg = self.sentim_analyzer.all_words([mark_negation(doc) for doc in docs])
         return all_words_neg
 
-    def train_sentiment_analyzer(self):
-        prepare_training_and_test_data()
-        extract_training_test_features()
+    def train_sentiment_analyzer(self, evaluate=True):
+        self.prepare_training_and_test_data()
+        self.extract_training_test_features()
 
         # We can now train our classifier on the training set, and subsequently output the evaluation results
         self.trainer = NaiveBayesClassifier.train
         self.classifier = self.sentim_analyzer.train(self.trainer, self.training_set)
 
-        evaluate_classifier()
+        if evaluate:
+            self.evaluate_classifier()
 
     def evaluate_classifier(self):
         for key, value in sorted(self.sentim_analyzer.evaluate(self.test_set).items()):
             print('{0}: {1}'.format(key, value))
 
     def classify_text(self, text):
-        pass
+        self.sentim_analyzer.add_feat_extractor(extract_unigram_feats, unigrams=self.unigram_feats)
+        return self.classifier.classify(self.sentim_analyzer.extract_features(tokenize.word_tokenize(text)))
 
 
 def main():
-    print "Hello world!"
+    print "Sentiment Analysis experiment -- Subjective/Objective classifier"
+    sent_classifier = SentimentAnalyzerTry()
+    sent_classifier.train_sentiment_analyzer()
+
+    obj_example = "the train went to dublin where a young man got into the train"
+    print "Text: ", obj_example
+    print sent_classifier.classify_text(obj_example)
+    
+    subj_example = "the journey by train was a nice experience. it was long but enjoyable"
+    print "Text: ", subj_example
+    print sent_classifier.classify_text(subj_example)
 
 if __name__ == '__main__':
     main()
