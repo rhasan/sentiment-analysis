@@ -6,7 +6,9 @@ from nltk import tokenize
 
 class SentimentAnalyzerTry(object):
     def __init__(self):
-        self.n_instances = 100
+        self.n_instances = 1000
+        self.n_training = int(self.n_instances * 0.8)
+        self.n_testing = int(self.n_instances * 0.2)
         self.sentim_analyzer = SentimentAnalyzer()
 
     def prepare_training_and_test_data(self):
@@ -19,11 +21,17 @@ class SentimentAnalyzerTry(object):
         obj_docs = [(sent, 'obj') for sent in subjectivity.sents(categories='obj')[:self.n_instances]]
 
         # We separately split subjective and objective instances to keep a balanced uniform class distribution in both train and test sets.
-        train_subj_docs = subj_docs[:80]
-        test_subj_docs = subj_docs[80:100]
+        training_end = self.n_training
+        testing_start = training_end
+        testing_end = testing_start + self.n_testing
 
-        train_obj_docs = obj_docs[:80]
-        test_obj_docs = obj_docs[80:100]
+        
+        train_subj_docs = subj_docs[:training_end]
+        test_subj_docs = subj_docs[testing_start:testing_end]
+
+        train_obj_docs = obj_docs[:training_end]
+        test_obj_docs = obj_docs[testing_start:testing_end]
+        
         self.training_docs = train_subj_docs + train_obj_docs
         self.testing_docs = test_subj_docs + test_obj_docs
         
